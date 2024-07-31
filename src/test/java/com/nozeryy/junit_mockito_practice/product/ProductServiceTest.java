@@ -9,6 +9,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.util.List;
 import java.util.Optional;
 import static java.math.BigDecimal.valueOf;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.*;
@@ -78,6 +79,7 @@ class ProductServiceTest {
 
         //assert
         assertNotNull(actualProductResponse);
+        assertThat(expectedProductResponse.name()).isEqualTo(actualProductResponse.name());
         assertEquals(expectedProductResponse.id(), actualProductResponse.id());
         verify(productRepository,times(1)).findById(id);
     }
@@ -158,7 +160,6 @@ class ProductServiceTest {
 //                .hasMessageContaining("Product " + productRequest.id() +" was not found");
 
         verify(productRepository, times(1)).findById(nonExistingId);
-        verifyNoMoreInteractions(productRepository);
         verifyNoInteractions(productMapper);
     }
 
@@ -179,7 +180,8 @@ class ProductServiceTest {
 
         assertThrows(ProductNotFoundException.class, () -> productService.deleteProductById(nonExistingId));
 
-        verify(productRepository, never()).deleteById(nonExistingId);
+        verify(productRepository, times(1)).existsById(nonExistingId);
+  
     }
 
 

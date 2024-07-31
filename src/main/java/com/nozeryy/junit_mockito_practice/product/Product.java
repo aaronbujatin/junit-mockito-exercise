@@ -23,4 +23,10 @@ public class Product {
     private BigDecimal price;
     private String category;
 
+    public Product(String name, String description, BigDecimal price, String category) {
+        this.name = name;
+        this.description = description;
+        this.price = price;
+        this.category = category;
+    }
 }
