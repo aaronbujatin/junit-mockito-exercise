@@ -22,32 +22,28 @@ class ProductServiceTest {
     @Mock
     private ProductMapper productMapper;
     private ProductService productService;
-
+    private Product productToDb;
+    private Product productFromDb;
+    private ProductResponse expectedProductResponse;
+    private ProductRequest productRequest;
+    private ProductRequest productUpdate;
 
     @BeforeEach
     void setUp(){
         productService = new ProductService(productRepository, productMapper);
-
+        productToDb = new Product(null, "RTX 2060", "Product description",valueOf(20_000), "Graphics Card");
+        productFromDb = new Product(1L, "RTX 2060", "Product description",valueOf(20_000), "Graphics Card");
+        productRequest = new ProductRequest(null, "RTX 2060", "Product description",valueOf(20_000), "Graphics Card");
+        productUpdate = new ProductRequest(1L, "RTX 2060", "Product description",valueOf(20_000), "Graphics Card");
+        expectedProductResponse = new ProductResponse(1L, "RTX 2060", "Product description",valueOf(20_000), "Graphics Card");
     }
 
     @Test
     public void testCreateProduct(){
         //arrange
-        Product productToDB = new Product(null, "RTX 2060", "Product description",
-                valueOf(20_000), "Graphics Card");
-
-        Product productFromDB = new Product(1L, "RTX 2060", "Product description",
-                valueOf(20_000), "Graphics Card");
-
-        ProductRequest productRequest = new ProductRequest(null, "RTX 2060", "Product description",
-                valueOf(20_000), "Graphics Card");
-
-        ProductResponse expectedProductResponse = new ProductResponse(1L, "RTX 2060", "Product description",
-                valueOf(20_000), "Graphics Card");
-
-        given(productMapper.mapToProduct(productRequest)).willReturn(productToDB);
-        given(productRepository.save(productToDB)).willReturn(productFromDB);
-        given(productMapper.mapToProductResponse(productFromDB)).willReturn(expectedProductResponse);
+        given(productMapper.mapToProduct(productRequest)).willReturn(productToDb);
+        given(productRepository.save(productToDb)).willReturn(productFromDb);
+        given(productMapper.mapToProductResponse(productFromDb)).willReturn(expectedProductResponse);
 
         //act
         ProductResponse actualProductResponse = productService.createProduct(productRequest);
@@ -55,25 +51,18 @@ class ProductServiceTest {
         //assert
         assertNotNull(actualProductResponse);
         assertEquals(expectedProductResponse, actualProductResponse);
-
         verify(productMapper, times(1)).mapToProduct(productRequest);
-        verify(productRepository, times(1)).save(productToDB);
-        verify(productMapper, times(1)).mapToProductResponse(productFromDB);
+        verify(productRepository, times(1)).save(productToDb);
+        verify(productMapper, times(1)).mapToProductResponse(productFromDb);
     }
 
     @Test
     public void testGetProductById(){
         //arrange
         Long id = 1L;
-        Product savedProductFromDatabase = new Product(id, "RTX 2060", "Product description",
-                valueOf(20_000), "Graphics Card");
-        ProductResponse productResponse = new ProductResponse(id, "RTX 2060", "Product description",
-                valueOf(20_000), "Graphics Card");
-        ProductResponse expectedProductResponse = new ProductResponse(id, "RTX 2060", "Product description",
-                valueOf(20_000), "Graphics Card");
+        given(productRepository.findById(id)).willReturn(Optional.of(productFromDb));
+        given(productMapper.mapToProductResponse(productFromDb)).willReturn(expectedProductResponse);
 
-        given(productRepository.findById(id)).willReturn(Optional.of(savedProductFromDatabase));
-        given(productMapper.mapToProductResponse(savedProductFromDatabase)).willReturn(productResponse);
         //act
         ProductResponse actualProductResponse = productService.findProductById(id);
 
@@ -87,7 +76,6 @@ class ProductServiceTest {
     @Test
     public void testShouldThrowWhenGettingNonExistentProduct(){
         Long nonExistingId = 999L;
-        ProductRequest productRequest = new ProductRequest(nonExistingId,"PN1", "PD1", valueOf(20), "PC1");
         given(productRepository.findById(nonExistingId)).willReturn(Optional.empty());
 
         assertThrows(ProductNotFoundException.class, () -> productService.findProductById(nonExistingId));
@@ -120,10 +108,8 @@ class ProductServiceTest {
                     .willReturn(expectedProductResponse.get(i));
         }
 
-        //act
         List<ProductResponse> actualProductResponses = productService.findAllProduct();
 
-        //assert
         assertEquals(expectedProductResponse, actualProductResponses);
         verify(productRepository, times(1)).findAll();
     }
@@ -131,13 +117,8 @@ class ProductServiceTest {
     @Test
     public void testUpdateProduct(){
         Long id = 1L;
-        Product productToDatabase = new Product(id,"PN1", "PD1", valueOf(20), "PC1");
-        Product productFromDatabase = new Product(id,"PN1", "PD1", valueOf(20), "PC1");
-        ProductRequest productRequest = new ProductRequest(id,"PN1", "PD1", valueOf(20), "PC1");
-        ProductResponse expectedProductResponse =  new ProductResponse(id,"PN1", "PD1", valueOf(20), "PC1");
-
-        given(productRepository.findById(id)).willReturn(Optional.of(productFromDatabase));
-        given(productRepository.save(any(Product.class))).willReturn(productFromDatabase);
+        given(productRepository.findById(id)).willReturn(Optional.of(productFromDb));
+        given(productRepository.save(productRequestToUpdate).willReturn(productFromDatabase);
         given(productMapper.mapToProductResponse(productFromDatabase)).willReturn(expectedProductResponse);
 
         ProductResponse actualProductResponse = productService.updateProduct(productRequest);
