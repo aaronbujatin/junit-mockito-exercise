@@ -2,13 +2,17 @@ package com.nozeryy.junit_mockito_practice.product;
 
 import com.nozeryy.junit_mockito_practice.exception.ProductNotFoundException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static java.lang.String.format;
+
 @RequiredArgsConstructor
 @Service
+@Slf4j
 public class ProductService {
     private final ProductRepository productRepository;
     private final ProductMapper productMapper;
@@ -38,7 +42,9 @@ public class ProductService {
         product.setDescription(productRequest.description());
         product.setPrice(productRequest.price());
         product.setCategory(productRequest.category());
+        log.info("Saving the updated product {}", product);
         productRepository.save(product);
+        log.info("Updated product from database {}", product);
         return productMapper.mapToProductResponse(product);
     }
 

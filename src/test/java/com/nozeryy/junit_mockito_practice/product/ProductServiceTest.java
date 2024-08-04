@@ -4,6 +4,7 @@ import com.nozeryy.junit_mockito_practice.exception.ProductNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import java.util.List;
@@ -26,6 +27,7 @@ class ProductServiceTest {
     private Product productFromDb;
     private ProductResponse expectedProductResponse;
     private ProductRequest productRequest;
+    private ProductRequest productRequestWithId;
     private ProductRequest productUpdate;
 
     @BeforeEach
@@ -34,6 +36,7 @@ class ProductServiceTest {
         productToDb = new Product(null, "RTX 2060", "Product description",valueOf(20_000), "Graphics Card");
         productFromDb = new Product(1L, "RTX 2060", "Product description",valueOf(20_000), "Graphics Card");
         productRequest = new ProductRequest(null, "RTX 2060", "Product description",valueOf(20_000), "Graphics Card");
+        productRequestWithId = new ProductRequest(1L, "RTX 2060", "Product description",valueOf(20_000), "Graphics Card");
         productUpdate = new ProductRequest(1L, "RTX 2060", "Product description",valueOf(20_000), "Graphics Card");
         expectedProductResponse = new ProductResponse(1L, "RTX 2060", "Product description",valueOf(20_000), "Graphics Card");
     }
@@ -118,14 +121,14 @@ class ProductServiceTest {
     public void testUpdateProduct(){
         Long id = 1L;
         given(productRepository.findById(id)).willReturn(Optional.of(productFromDb));
-        given(productRepository.save(productRequestToUpdate).willReturn(productFromDatabase);
-        given(productMapper.mapToProductResponse(productFromDatabase)).willReturn(expectedProductResponse);
+        given(productRepository.save(productFromDb)).willReturn(productFromDb);
+        given(productMapper.mapToProductResponse(productFromDb)).willReturn(expectedProductResponse);
 
-        ProductResponse actualProductResponse = productService.updateProduct(productRequest);
+        ProductResponse actualResponse = productService.updateProduct(productRequestWithId);
 
-        assertEquals(expectedProductResponse, actualProductResponse);
+        assertEquals(expectedProductResponse, actualResponse);
         verify(productRepository, times(1)).findById(id);
-        verify(productRepository, times(1)).save(any(Product.class));
+        verify(productRepository, times(1)).save(productFromDb);
 
     }
 
@@ -136,9 +139,6 @@ class ProductServiceTest {
         given(productRepository.findById(nonExistingId)).willReturn(Optional.empty());
 
         assertThrows(ProductNotFoundException.class, () -> productService.updateProduct(productRequest));
-//        assertThatThrownBy(() -> productService.updateProduct(productRequest))
-//                .isInstanceOf(ProductNotFoundException.class)
-//                .hasMessageContaining("Product " + productRequest.id() +" was not found");
 
         verify(productRepository, times(1)).findById(nonExistingId);
         verifyNoInteractions(productMapper);
